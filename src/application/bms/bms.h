@@ -163,8 +163,36 @@ typedef struct {
 
 
 /*================== Function Prototypes ==================================*/
+/**
+ * @brief   sets the current state request of the state variable bms_state.
+ *
+ * @details This function is used to make a state request to the state machine,e.g, start voltage
+ *          measurement, read result of voltage measurement, re-initialization.
+ *          It calls BMS_CheckStateRequest() to check if the request is valid. The state request is
+ *          rejected if is not valid. The result of the check is returned immediately, so that the
+ *          requester can act in case it made a non-valid state request.
+ *
+ * @param   statereq    state request to set
+ *
+ * @return  current state request, taken from BMS_STATE_REQUEST_e
+ */
 extern BMS_RETURN_TYPE_e BMS_SetStateRequest(BMS_STATE_REQUEST_e statereq);
+
+/**
+ * @brief   Returns the current state.
+ *
+ * @details This function is used in the functioning of the SYS state machine.
+ *
+ * @return  current state, taken from BMS_STATEMACH_e
+ */
 extern  BMS_STATEMACH_e BMS_GetState(void);
+
+/**
+ * @brief   trigger function for the SYS driver state machine.
+ *
+ * @details This function contains the sequence of events in the SYS state machine. It must be
+ *          called time-triggered, every 1ms.
+ */
 extern void BMS_Trigger(void);
 
 

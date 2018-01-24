@@ -90,6 +90,8 @@ void ENG_Init(void) {
     error_flags.under_temperature_charge    = 0;
     error_flags.under_temperature_discharge = 0;
     error_flags.crc_error                   = 0;
+    error_flags.mux_error                   = 0;
+    error_flags.spi_error                   = 0;
 
     error_flags.can_timing                  = 0;
     error_flags.can_timing_cc               = 0;

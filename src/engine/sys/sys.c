@@ -21,13 +21,13 @@
  */
 
 /**
- * @file    syscontrol.c
+ * @file    sys.c
  * @author  foxBMS Team
  * @date    21.09.2015 (date of creation)
  * @ingroup ENGINE
  * @prefix  SYS
  *
- * @brief   Syscontrol driver implementation
+ * @brief   Sys driver implementation
  */
 
 
@@ -88,20 +88,18 @@ static uint8_t SYS_CheckReEntrance(void);
  * @return  retval  0 if no further instance of the function is active, 0xff else
  *
  */
-static uint8_t SYS_CheckReEntrance(void)
-{
-    uint8_t retval=0;
+static uint8_t SYS_CheckReEntrance(void) {
+    uint8_t retval = 0;
 
     taskENTER_CRITICAL();
-    if(!sys_state.triggerentry)
-    {
+    if (!sys_state.triggerentry) {
         sys_state.triggerentry++;
+    } else {
+        retval = 0xFF;  // multiple calls of function
     }
-    else
-        retval = 0xFF;    // multiple calls of function
     taskEXIT_CRITICAL();
 
-    return (retval);
+    return retval;
 }
 
 
@@ -115,7 +113,6 @@ static uint8_t SYS_CheckReEntrance(void)
  * @return  retval  current state request, taken from SYS_STATE_REQUEST_e
  */
 static SYS_STATE_REQUEST_e SYS_GetStateRequest(void) {
-
     SYS_STATE_REQUEST_e retval = SYS_STATE_NO_REQUEST;
 
     taskENTER_CRITICAL();
@@ -126,17 +123,9 @@ static SYS_STATE_REQUEST_e SYS_GetStateRequest(void) {
 }
 
 
-/**
- * @brief   gets the current state.
- *
- * This function is used in the functioning of the SYS state machine.
- *
- * @return  current state, taken from SYS_STATEMACH_e
- */
 SYS_STATEMACH_e SYS_GetState(void) {
     return (sys_state.state);
 }
-
 
 
 /**
@@ -148,8 +137,7 @@ SYS_STATEMACH_e SYS_GetState(void) {
  * @return  retVal          current state request, taken from SYS_STATE_REQUEST_e
  *
  */
-static SYS_STATE_REQUEST_e SYS_TransferStateRequest(void)
-{
+static SYS_STATE_REQUEST_e SYS_TransferStateRequest(void) {
     SYS_STATE_REQUEST_e retval = SYS_STATE_NO_REQUEST;
 
     taskENTER_CRITICAL();
@@ -161,30 +149,15 @@ static SYS_STATE_REQUEST_e SYS_TransferStateRequest(void)
 }
 
 
-/**
- * @brief   sets the current state request of the state variable sys_state.
- *
- * This function is used to make a state request to the state machine,e.g, start voltage measurement,
- * read result of voltage measurement, re-initialization
- * It calls SYS_CheckStateRequest() to check if the request is valid.
- * The state request is rejected if is not valid.
- * The result of the check is returned immediately, so that the requester can act in case
- * it made a non-valid state request.
- *
- * @param   statereq                state request to set
- *
- * @return  retVal                  current state request, taken from SYS_STATE_REQUEST_e
- */
-SYS_RETURN_TYPE_e SYS_SetStateRequest(SYS_STATE_REQUEST_e statereq)
-{
+
+SYS_RETURN_TYPE_e SYS_SetStateRequest(SYS_STATE_REQUEST_e statereq) {
     SYS_RETURN_TYPE_e retVal = SYS_STATE_NO_REQUEST;
 
     taskENTER_CRITICAL();
-    retVal=SYS_CheckStateRequest(statereq);
+    retVal = SYS_CheckStateRequest(statereq);
 
-    if (retVal==SYS_OK)
-        {
-            sys_state.statereq   = statereq;
+    if (retVal == SYS_OK) {
+            sys_state.statereq  = statereq;
         }
     taskEXIT_CRITICAL();
 
@@ -197,137 +170,112 @@ SYS_RETURN_TYPE_e SYS_SetStateRequest(SYS_STATE_REQUEST_e statereq)
  * @brief   checks the state requests that are made.
  *
  * This function checks the validity of the state requests.
- * The resuls of the checked is returned immediately.
+ * The results of the checked is returned immediately.
  *
  * @param   statereq    state request to be checked
  *
  * @return              result of the state request that was made, taken from SYS_RETURN_TYPE_e
  */
 static SYS_RETURN_TYPE_e SYS_CheckStateRequest(SYS_STATE_REQUEST_e statereq) {
-
-    if (statereq == SYS_STATE_ERROR_REQUEST){
+    if (statereq == SYS_STATE_ERROR_REQUEST) {
         return SYS_OK;
     }
 
-    if (sys_state.statereq == SYS_STATE_NO_REQUEST){
-        //init only allowed from the uninitialized state
+    if (sys_state.statereq == SYS_STATE_NO_REQUEST) {
+        // init only allowed from the uninitialized state
         if (statereq == SYS_STATE_INIT_REQUEST) {
-            if (sys_state.state==SYS_STATEMACH_UNINITIALIZED) {
+            if (sys_state.state == SYS_STATEMACH_UNINITIALIZED) {
                 return SYS_OK;
             } else {
                 return SYS_ALREADY_INITIALIZED;
             }
-        }
-        else {
+        } else {
             return SYS_ILLEGAL_REQUEST;
         }
-    }
-    else {
+    } else {
         return SYS_REQUEST_PENDING;
     }
-
 }
 
 
-/**
- * @brief   trigger function for the SYS driver state machine.
- *
- * This function contains the sequence of events in the SYS state machine.
- * It must be called time-triggered, every 1ms.
- *
- * @return  void
- */
-void SYS_Trigger(void)
-{
-
-    //STD_RETURN_TYPE_e retVal=E_OK;
-    SYS_STATE_REQUEST_e statereq=SYS_STATE_NO_REQUEST;
+void SYS_Trigger(void) {
+    //  STD_RETURN_TYPE_e retVal=E_OK;
+    SYS_STATE_REQUEST_e statereq = SYS_STATE_NO_REQUEST;
     ILCK_STATEMACH_e ilckstate = ILCK_STATEMACH_UNDEFINED;
     BMS_STATEMACH_e bmsstate = BMS_STATEMACH_UNDEFINED;
 
 
-    DIAG_SysMonNotify(DIAG_SYSMON_SYS_ID,0);        // task is running, state = ok
+    DIAG_SysMonNotify(DIAG_SYSMON_SYS_ID, 0);  // task is running, state = ok
     // Check re-entrance of function
-    if (SYS_CheckReEntrance())
+    if (SYS_CheckReEntrance()) {
         return;
+    }
 
-    if(sys_state.timer)
-    {
-        if(--sys_state.timer)
-        {
+    if (sys_state.timer) {
+        if (--sys_state.timer) {
             sys_state.triggerentry--;
-            return;    // handle state machine only if timer has elapsed
+            return;  // handle state machine only if timer has elapsed
         }
     }
 
     /****Happens every time the state machine is triggered**************/
 
 
-    switch(sys_state.state) {
-
+    switch (sys_state.state) {
         /****************************UNINITIALIZED***********************************/
         case SYS_STATEMACH_UNINITIALIZED:
             // waiting for Initialization Request
             statereq = SYS_TransferStateRequest();
-            if(statereq == SYS_STATE_INIT_REQUEST){
+            if (statereq == SYS_STATE_INIT_REQUEST) {
                 SYS_SAVELASTSTATES();
                 sys_state.timer = SYS_STATEMACH_SHORTTIME_MS;
                 sys_state.state = SYS_STATEMACH_INITIALIZATION;
                 sys_state.substate = SYS_ENTRY;
-            }
-            else if(statereq == SYS_STATE_NO_REQUEST){
+            } else if (statereq == SYS_STATE_NO_REQUEST) {
                 // no actual request pending //
-            }
-            else{
+            } else {
                 sys_state.ErrRequestCounter++;   // illegal request pending
             }
             break;
-
-
         /****************************INITIALIZATION**********************************/
         case SYS_STATEMACH_INITIALIZATION:
 
             SYS_SAVELASTSTATES();
-            //
             //Initializations done here
-            //
             sys_state.timer = SYS_STATEMACH_SHORTTIME_MS;
             sys_state.state = SYS_STATEMACH_INITIALIZED;
             sys_state.substate = SYS_ENTRY;
-
             break;
 
         /****************************INITIALIZED*************************************/
         case SYS_STATEMACH_INITIALIZED:
             SYS_SAVELASTSTATES();
+            MEAS_StartMeasurement();
             sys_state.timer = SYS_STATEMACH_SHORTTIME_MS;
             sys_state.state = SYS_STATEMACH_INITIALIZE_INTERLOCK;
             sys_state.substate = SYS_ENTRY;
             break;
 
-
         /****************************INITIALIZE INTERLOCK*************************************/
         case SYS_STATEMACH_INITIALIZE_INTERLOCK:
             SYS_SAVELASTSTATES();
 
-            if (sys_state.substate == SYS_ENTRY){
+            if (sys_state.substate == SYS_ENTRY) {
                 ILCK_SetStateRequest(ILCK_STATE_INIT_REQUEST);
                 sys_state.timer = SYS_STATEMACH_SHORTTIME_MS;
                 sys_state.substate = SYS_WAIT_INITIALIZATION_INTERLOCK;
                 sys_state.InitCounter = 0;
                 break;
-            }
-            else if (sys_state.substate == SYS_WAIT_INITIALIZATION_INTERLOCK){
+            } else if (sys_state.substate == SYS_WAIT_INITIALIZATION_INTERLOCK) {
                 ilckstate = ILCK_GetState();
-                if (ilckstate == ILCK_STATEMACH_WAIT_FIRST_REQUEST){
+                if (ilckstate == ILCK_STATEMACH_WAIT_FIRST_REQUEST) {
                     ILCK_SetStateRequest(ILCK_STATE_CLOSE_REQUEST);
                     sys_state.timer = SYS_STATEMACH_SHORTTIME_MS;
                     sys_state.state = SYS_STATEMACH_INITIALIZE_MISC;
                     sys_state.substate = SYS_ENTRY;
                     break;
-                }
-                else{
-                    if (sys_state.InitCounter>1000){
+                } else {
+                    if (sys_state.InitCounter > 1000) {
                         sys_state.timer = SYS_STATEMACH_SHORTTIME_MS;
                         sys_state.state = SYS_STATEMACH_ERROR;
                         sys_state.substate = SYS_ILCK_INIT_ERROR;
@@ -362,17 +310,15 @@ void SYS_Trigger(void)
                     sys_state.substate = SYS_WAIT_INITIALIZATION_BMS;
                     sys_state.InitCounter = 0;
                     break;
-                }
-                else if (sys_state.substate == SYS_WAIT_INITIALIZATION_BMS){
+                } else if (sys_state.substate == SYS_WAIT_INITIALIZATION_BMS) {
                     bmsstate = BMS_GetState();
-                    if (bmsstate == BMS_STATEMACH_IDLE || bmsstate == BMS_STATEMACH_STANDBY){
+                    if (bmsstate == BMS_STATEMACH_IDLE || bmsstate == BMS_STATEMACH_STANDBY) {
                         sys_state.timer = SYS_STATEMACH_SHORTTIME_MS;
                         sys_state.state = SYS_STATEMACH_RUNNING;
                         sys_state.substate = SYS_ENTRY;
                         break;
-                    }
-                    else{
-                        if (sys_state.InitCounter>1000){
+                    } else {
+                        if (sys_state.InitCounter > 1000) {
                             sys_state.timer = SYS_STATEMACH_SHORTTIME_MS;
                             sys_state.state = SYS_STATEMACH_ERROR;
                             sys_state.substate = SYS_BMS_INIT_ERROR;
@@ -383,9 +329,7 @@ void SYS_Trigger(void)
                         break;
                     }
                 }
-
                 break;
-
 
         /****************************RUNNNIG*************************************/
         case SYS_STATEMACH_RUNNING:
@@ -398,21 +342,6 @@ void SYS_Trigger(void)
             SYS_SAVELASTSTATES();
             sys_state.timer = SYS_STATEMACH_LONGTIME_MS;
             break;
-
-
-    } // end switch(sys_state.state)
-
+    }  // end switch(sys_state.state)
     sys_state.triggerentry--;
 }
-
-
-
-/*================== Static functions =====================================*/
-
-
-
-
-
-
-
-

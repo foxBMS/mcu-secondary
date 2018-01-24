@@ -21,24 +21,23 @@
  */
 
 /**
- * @file    syscontrol_cfg.h
+ * @file    sys_cfg.h
  * @author  foxBMS Team
  * @date    21.09.2015 (date of creation)
  * @ingroup ENGINE_CONF
  * @prefix  SYS
  *
- * @brief   Syscontrol driver configuration header
+ * @brief   Sys driver configuration header
  */
 
-#ifndef SYS_CONTROL_CFG_H_
-#define SYS_CONTROL_CFG_H_
+#ifndef SYS_CFG_H_
+#define SYS_CFG_H_
 
 /*================== Includes =============================================*/
 
 #include "mcu.h"
 
 /*================== Macros and Definitions ===============================*/
-
 /**
  * SYS statemachine short time definition in ms
  */
@@ -62,4 +61,4 @@
 
 /*================== Function Implementations =============================*/
 
-#endif /* SYS_CONTROL_CFG_H_ */
+#endif /* SYS_CFG_H_ */
