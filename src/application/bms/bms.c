@@ -34,7 +34,7 @@
 /*================== Includes =============================================*/
 #include "bms.h"
 #include "interlock.h"
-#include "cmsis_os.h"
+#include "os.h"
 #include "diag.h"
 #include "database.h"
 #include "batterycell_cfg.h"
@@ -45,14 +45,13 @@
 /**
  * Saves the last state and the last substate
  */
-#define BMS_SAVELASTSTATES()    bms_state.laststate=bms_state.state; \
-                                bms_state.lastsubstate = bms_state.substate
+#define BMS_SAVELASTSTATES()    bms_state.laststate = bms_state.state; \
+                                bms_state.lastsubstate = bms_state.substate;
 
 /*================== Constant and Variable Definitions ====================*/
 
 /**
  * contains the state of the contactor state machine
- *
  */
 static BMS_STATE_s bms_state = {
     .timer                  = 0,
@@ -74,7 +73,6 @@ static BMS_STATE_REQUEST_e BMS_TransferStateRequest(void);
 static uint8_t BMS_CheckReEntrance(void);
 static uint8_t BMS_CheckCANRequests(void);
 static STD_RETURN_TYPE_e BMS_CheckAnyErrorFlagSet(void);
-
 static void BMS_CheckVoltages(void);
 static void BMS_CheckTemperatures(void);
 static void BMS_CheckCurrent(void);
@@ -84,43 +82,33 @@ static void BMS_CheckCurrent(void);
 /**
  * @brief   re-entrance check of SYS state machine trigger function
  *
- * This function is not re-entrant and should only be called time- or event-triggered.
- * It increments the triggerentry counter from the state variable ltc_state.
- * It should never be called by two different processes, so if it is the case, triggerentry
- * should never be higher than 0 when this function is called.
- *
+ * @details This function is not re-entrant and should only be called time- or event-triggered. It
+ *          increments the triggerentry counter from the state variable ltc_state. It should never
+ *          be called by two different processes, so if it is the case, triggerentry should never
+ *          be higher than 0 when this function is called.
  *
  * @return  retval  0 if no further instance of the function is active, 0xff else
- *
  */
-static uint8_t BMS_CheckReEntrance(void)
-{
-    uint8_t retval=0;
-
+static uint8_t BMS_CheckReEntrance(void) {
+    uint8_t retval = 0;
     OS_TaskEnter_Critical();
-    if(!bms_state.triggerentry)
-    {
+    if (!bms_state.triggerentry) {
         bms_state.triggerentry++;
+    } else {
+        retval = 0xFF;  // multiple calls of function
     }
-    else
-        retval = 0xFF;    // multiple calls of function
     OS_TaskExit_Critical();
-
     return (retval);
 }
-
-
-
 
 /**
  * @brief   gets the current state request.
  *
- * This function is used in the functioning of the SYS state machine.
+ * @details This function is used in the functioning of the SYS state machine.
  *
- * @return  retval  current state request, taken from BMS_STATE_REQUEST_e
+ * @return  current state request, taken from BMS_STATE_REQUEST_e
  */
 static BMS_STATE_REQUEST_e BMS_GetStateRequest(void) {
-
     BMS_STATE_REQUEST_e retval = BMS_STATE_NO_REQUEST;
 
     OS_TaskEnter_Critical();
@@ -131,172 +119,120 @@ static BMS_STATE_REQUEST_e BMS_GetStateRequest(void) {
 }
 
 
-/**
- * @brief   gets the current state.
- *
- * This function is used in the functioning of the SYS state machine.
- *
- * @return  current state, taken from BMS_STATEMACH_e
- */
 BMS_STATEMACH_e BMS_GetState(void) {
     return (bms_state.state);
 }
 
-
-
 /**
  * @brief   transfers the current state request to the state machine.
  *
- * This function takes the current state request from cont_state and transfers it to the state machine.
- * It resets the value from cont_state to BMS_STATE_NO_REQUEST
+ * @details This function takes the current state request from cont_state and transfers it to th
+ *          state machine. It resets the value from cont_state to BMS_STATE_NO_REQUEST
  *
  * @return  retVal          current state request, taken from BMS_STATE_REQUEST_e
- *
  */
-static BMS_STATE_REQUEST_e BMS_TransferStateRequest(void)
-{
+static BMS_STATE_REQUEST_e BMS_TransferStateRequest(void) {
     BMS_STATE_REQUEST_e retval = BMS_STATE_NO_REQUEST;
 
     OS_TaskEnter_Critical();
     retval    = bms_state.statereq;
     bms_state.statereq = BMS_STATE_NO_REQUEST;
     OS_TaskExit_Critical();
-
     return (retval);
 }
 
 
-/**
- * @brief   sets the current state request of the state variable bms_state.
- *
- * This function is used to make a state request to the state machine,e.g, start voltage measurement,
- * read result of voltage measurement, re-initialization
- * It calls BMS_CheckStateRequest() to check if the request is valid.
- * The state request is rejected if is not valid.
- * The result of the check is returned immediately, so that the requester can act in case
- * it made a non-valid state request.
- *
- * @param   statereq                state request to set
- *
- * @return  retVal                  current state request, taken from BMS_STATE_REQUEST_e
- */
-BMS_RETURN_TYPE_e BMS_SetStateRequest(BMS_STATE_REQUEST_e statereq)
-{
+
+BMS_RETURN_TYPE_e BMS_SetStateRequest(BMS_STATE_REQUEST_e statereq) {
     BMS_RETURN_TYPE_e retVal = BMS_STATE_NO_REQUEST;
 
     OS_TaskEnter_Critical();
-    retVal=BMS_CheckStateRequest(statereq);
+    retVal = BMS_CheckStateRequest(statereq);
 
-    if (retVal==BMS_OK)
-        {
-            bms_state.statereq   = statereq;
-        }
+    if (retVal == BMS_OK) {
+            bms_state.statereq = statereq;
+    }
     OS_TaskExit_Critical();
 
     return (retVal);
 }
 
-
-
 /**
  * @brief   checks the state requests that are made.
  *
- * This function checks the validity of the state requests.
- * The resuls of the checked is returned immediately.
+ * @details This function checks the validity of the state requests. The results of the checked is
+ *          returned immediately.
  *
  * @param   statereq    state request to be checked
  *
- * @return              result of the state request that was made, taken from BMS_RETURN_TYPE_e
+ * @return  result of the state request that was made, taken from BMS_RETURN_TYPE_e
  */
 static BMS_RETURN_TYPE_e BMS_CheckStateRequest(BMS_STATE_REQUEST_e statereq) {
-
-    if (statereq == BMS_STATE_ERROR_REQUEST){
+    if (statereq == BMS_STATE_ERROR_REQUEST) {
         return BMS_OK;
     }
 
-    if (bms_state.statereq == BMS_STATE_NO_REQUEST){
-        //init only allowed from the uninitialized state
+    if (bms_state.statereq == BMS_STATE_NO_REQUEST) {
+        // init only allowed from the uninitialized state
         if (statereq == BMS_STATE_INIT_REQUEST) {
-            if (bms_state.state==BMS_STATEMACH_UNINITIALIZED) {
+            if (bms_state.state == BMS_STATEMACH_UNINITIALIZED) {
                 return BMS_OK;
             } else {
                 return BMS_ALREADY_INITIALIZED;
             }
-        }
-        else {
+        } else {
             return BMS_ILLEGAL_REQUEST;
         }
-    }
-    else {
+    } else {
         return BMS_REQUEST_PENDING;
     }
-
 }
 
+void BMS_Trigger(void) {
+    BMS_STATE_REQUEST_e statereq = BMS_STATE_NO_REQUEST;
 
-/**
- * @brief   trigger function for the SYS driver state machine.
- *
- * This function contains the sequence of events in the SYS state machine.
- * It must be called time-triggered, every 1ms.
- *
- * @return  void
- */
-void BMS_Trigger(void)
-{
+    DIAG_SysMonNotify(DIAG_SYSMON_BMS_ID, 0);  // task is running, state = ok
 
-    //STD_RETURN_TYPE_e retVal=E_OK;
-    BMS_STATE_REQUEST_e statereq=BMS_STATE_NO_REQUEST;
-
-    DIAG_SysMonNotify(DIAG_SYSMON_BMS_ID,0);        // task is running, state = ok
-
-    if(bms_state.state != BMS_STATEMACH_UNINITIALIZED){
+    if (bms_state.state != BMS_STATEMACH_UNINITIALIZED) {
         BMS_CheckVoltages();
         BMS_CheckTemperatures();
         BMS_CheckCurrent();
     }
     // Check re-entrance of function
-    if (BMS_CheckReEntrance())
+    if (BMS_CheckReEntrance()) {
         return;
+    }
 
-    if(bms_state.timer)
-    {
-        if(--bms_state.timer)
-        {
+    if (bms_state.timer) {
+        if (--bms_state.timer) {
             bms_state.triggerentry--;
             return;    // handle state machine only if timer has elapsed
         }
     }
 
     /****Happens every time the state machine is triggered**************/
-
-
-    switch(bms_state.state) {
-
+    switch (bms_state.state) {
         /****************************UNINITIALIZED***********************************/
         case BMS_STATEMACH_UNINITIALIZED:
             // waiting for Initialization Request
             statereq = BMS_TransferStateRequest();
-            if(statereq == BMS_STATE_INIT_REQUEST){
+            if (statereq == BMS_STATE_INIT_REQUEST) {
                 BMS_SAVELASTSTATES();
                 bms_state.timer = BMS_STATEMACH_SHORTTIME_MS;
                 bms_state.state = BMS_STATEMACH_INITIALIZATION;
                 bms_state.substate = BMS_ENTRY;
-            }
-            else if(statereq == BMS_STATE_NO_REQUEST){
+            } else if (statereq == BMS_STATE_NO_REQUEST) {
                 // no actual request pending //
-            }
-            else{
-                bms_state.ErrRequestCounter++;   // illegal request pending
+            } else {
+                bms_state.ErrRequestCounter++;  // illegal request pending
             }
             break;
 
 
         /****************************INITIALIZATION**********************************/
         case BMS_STATEMACH_INITIALIZATION:
-
             BMS_SAVELASTSTATES();
-            //CONT_SetStateRequest(CONT_STATE_INIT_REQUEST);
+            // CONT_SetStateRequest(CONT_STATE_INIT_REQUEST);
 
             bms_state.timer = BMS_STATEMACH_SHORTTIME_MS;
             bms_state.state = BMS_STATEMACH_INITIALIZED;
@@ -380,14 +316,11 @@ void BMS_Trigger(void)
             break;
         default:
             break;
-
-    } // end switch(bms_state.state)
+    }  // end switch(bms_state.state)
 
     bms_state.triggerentry--;
     bms_state.counter++;
 }
-
-
 
 /*================== Static functions =====================================*/
 
@@ -415,9 +348,7 @@ static uint8_t BMS_CheckCANRequests(void){
 /**
  * @brief   checks the abidance by the safe operating area
  *
- * verify for cell voltage measurements (U), if minimum and maximum values are out of range
- *
- * @return  void
+ * @details verify for cell voltage measurements (U), if minimum and maximum values are out of range
  */
 static void BMS_CheckVoltages(void) {
     DATA_BLOCK_MINMAX_s minmax;
@@ -425,29 +356,23 @@ static void BMS_CheckVoltages(void) {
     DATA_GetTable(&minmax, DATA_BLOCK_ID_MINMAX);
 
     if (minmax.voltage_max > BC_VOLTMAX) {
-        DIAG_Handler(DIAG_CH_CELLVOLTAGE_OVERVOLTAGE,DIAG_EVENT_NOK,0, NULL_PTR);
-    }
-    else{
-        DIAG_Handler(DIAG_CH_CELLVOLTAGE_OVERVOLTAGE,DIAG_EVENT_OK,0, NULL_PTR);
+        DIAG_Handler(DIAG_CH_CELLVOLTAGE_OVERVOLTAGE, DIAG_EVENT_NOK, 0, NULL_PTR);
+    } else {
+        DIAG_Handler(DIAG_CH_CELLVOLTAGE_OVERVOLTAGE, DIAG_EVENT_OK, 0, NULL_PTR);
     }
 
     if (minmax.voltage_min < BC_VOLTMIN) {
-        DIAG_Handler(DIAG_CH_CELLVOLTAGE_UNDERVOLTAGE,DIAG_EVENT_NOK,0, NULL_PTR);
+        DIAG_Handler(DIAG_CH_CELLVOLTAGE_UNDERVOLTAGE, DIAG_EVENT_NOK, 0, NULL_PTR);
+    } else {
+        DIAG_Handler(DIAG_CH_CELLVOLTAGE_UNDERVOLTAGE, DIAG_EVENT_OK, 0, NULL_PTR);
     }
-    else{
-        DIAG_Handler(DIAG_CH_CELLVOLTAGE_UNDERVOLTAGE,DIAG_EVENT_OK,0, NULL_PTR);
-    }
-
 }
-
 
 
 /**
  * @brief   checks the abidance by the safe operating area
  *
- * verify for cell temperature measurements (T), if minimum and maximum values are out of range
- *
- * @return  void
+ * @details verify for cell temperature measurements (T), if minimum and maximum values are out of range
  */
 static void BMS_CheckTemperatures(void) {
     DATA_BLOCK_MINMAX_s minmax;
@@ -459,16 +384,13 @@ static void BMS_CheckTemperatures(void) {
     if(curr_tab.current>=0.0){
         if (minmax.temperature_max > BC_TEMPMAX_DISCHARGE) {
             DIAG_Handler(DIAG_CH_TEMP_OVERTEMPERATURE_DISCHARGE,DIAG_EVENT_NOK,0, NULL_PTR);
-        }
-        else{
+        } else{
             DIAG_Handler(DIAG_CH_TEMP_OVERTEMPERATURE_DISCHARGE,DIAG_EVENT_OK,0, NULL_PTR);
         }
-    }
-    else{
+    } else{
         if (minmax.temperature_max > BC_TEMPMAX_CHARGE) {
             DIAG_Handler(DIAG_CH_TEMP_OVERTEMPERATURE_CHARGE,DIAG_EVENT_NOK,0, NULL_PTR);
-        }
-        else{
+        } else{
             DIAG_Handler(DIAG_CH_TEMP_OVERTEMPERATURE_CHARGE,DIAG_EVENT_OK,0, NULL_PTR);
         }
     }
@@ -476,16 +398,13 @@ static void BMS_CheckTemperatures(void) {
     if(curr_tab.current>=0.0){
         if (minmax.temperature_min < BC_TEMPMIN_DISCHARGE) {
             DIAG_Handler(DIAG_CH_TEMP_UNDERTEMPERATURE_DISCHARGE,DIAG_EVENT_NOK,0, NULL_PTR);
-        }
-        else{
+        } else{
             DIAG_Handler(DIAG_CH_TEMP_UNDERTEMPERATURE_DISCHARGE,DIAG_EVENT_OK,0, NULL_PTR);
         }
-    }
-    else{
+    } else{
         if (minmax.temperature_min < BC_TEMPMIN_CHARGE) {
             DIAG_Handler(DIAG_CH_TEMP_UNDERTEMPERATURE_CHARGE,DIAG_EVENT_NOK,0, NULL_PTR);
-        }
-        else{
+        } else{
             DIAG_Handler(DIAG_CH_TEMP_UNDERTEMPERATURE_CHARGE,DIAG_EVENT_OK,0, NULL_PTR);
         }
     }
@@ -498,9 +417,7 @@ static void BMS_CheckTemperatures(void) {
 /**
  * @brief   checks the abidance by the safe operating area
  *
- * verify for cell current measurements (I), if minimum and maximum values are out of range
- *
- * @return  void
+ * @details verify for cell current measurements (I), if minimum and maximum values are out of range
  */
 static void BMS_CheckCurrent(void) {
     DATA_BLOCK_SOX_s sof_tab;
@@ -508,8 +425,6 @@ static void BMS_CheckCurrent(void) {
 
     DATA_GetTable(&sof_tab, DATA_BLOCK_ID_SOX);
     DATA_GetTable(&curr_tab, DATA_BLOCK_ID_CURRENT);
-
-
 
 #if MEAS_TEST_CELL_SOF_LIMITS == TRUE
     if (((curr_tab.current < (-1000*(sof_tab.sof_continuous_charge))) ||
@@ -521,35 +436,28 @@ static void BMS_CheckCurrent(void) {
     if(curr_tab.current<0.0){
         if (-curr_tab.current > BC_CURRENTMAX_CHARGE) {
             DIAG_Handler(DIAG_CH_OVERCURRENT_CHARGE,DIAG_EVENT_NOK,0, NULL_PTR);
-        }
-        else{
+        } else{
             DIAG_Handler(DIAG_CH_OVERCURRENT_CHARGE,DIAG_EVENT_OK,0, NULL_PTR);
         }
     }
     else{
         if (curr_tab.current > BC_CURRENTMAX_DISCHARGE) {
             DIAG_Handler(DIAG_CH_OVERCURRENT_DISCHARGE,DIAG_EVENT_NOK,0, NULL_PTR);
-        }
-        else{
+        } else{
             DIAG_Handler(DIAG_CH_OVERCURRENT_DISCHARGE,DIAG_EVENT_OK,0, NULL_PTR);
         }
     }
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-static STD_RETURN_TYPE_e BMS_CheckAnyErrorFlagSet(void){
-
+/**
+ * @brief   Checks the errorflags
+ *
+ * @details Checks all the error flags from the database and returns an error if at least onee is set.
+ *
+ * @return  E_OK if no error flag is set, otherwise E_NOT_OK
+ */
+static STD_RETURN_TYPE_e BMS_CheckAnyErrorFlagSet(void) {
     STD_RETURN_TYPE_e retVal = E_NOT_OK;
     DATA_BLOCK_SYSTEMSTATE_s error_flags;
 
@@ -568,6 +476,8 @@ static STD_RETURN_TYPE_e BMS_CheckAnyErrorFlagSet(void){
         error_flags.under_temperature_charge    == 1 ||
         error_flags.under_temperature_discharge == 1 ||
         error_flags.crc_error                   == 1 ||
+        error_flags.mux_error                   == 1 ||
+        error_flags.spi_error                   == 1 ||
         error_flags.currentsensorresponding     == 1 ||
         error_flags.can_timing_cc               == 1 ||
         error_flags.can_timing                  == 1 ) {
@@ -579,10 +489,3 @@ static STD_RETURN_TYPE_e BMS_CheckAnyErrorFlagSet(void){
 
     return retVal;
 }
-
-
-
-
-
-
-

@@ -21,13 +21,13 @@
  */
 
 /**
- * @file    syscontrol.h
+ * @file    sys.h
  * @author  foxBMS Team
  * @date    21.09.2015 (date of creation)
  * @ingroup ENGINE
  * @prefix  SYS
  *
- * @brief   Syscontrol driver header
+ * @brief   Sys driver header
  *
  *
  */
@@ -42,18 +42,18 @@
 /*================== Macros and Definitions ===============================*/
 
 /**
- * Symbolic names for busyness of the syscontrol
+ * Symbolic names for busyness of the system
  */
 typedef enum {
-    SYS_CHECK_OK        = 0,    /*!< syscontrol ok      */
-    SYS_CHECK_BUSY      = 1,    /*!< syscontrol busy    */
-    SYS_CHECK_NOT_OK    = 2,    /*!< syscontrol not ok  */
+    SYS_CHECK_OK        = 0,    /*!< system ok      */
+    SYS_CHECK_BUSY      = 1,    /*!< system busy    */
+    SYS_CHECK_NOT_OK    = 2,    /*!< system not ok  */
 } SYS_CHECK_e;
 
 
 
 typedef enum {
-  SYS_MODE_STARTUP_EVENT    = 0,    /*!< syscontrol startup                 */
+  SYS_MODE_STARTUP_EVENT    = 0,    /*!< system startup                     */
 // SYS_MODE_EVENT_INIT      = 1,    /*!< todo                               */
   SYS_MODE_CYCLIC_EVENT     = 2,    /*!< for cyclic events                  */
   SYS_MODE_TRIGGERED_EVENT  = 3,    /*!< for triggered events               */
@@ -99,12 +99,12 @@ typedef enum {
     SYS_STATEMACH_INITIALIZE_BALANCING                      = 6,    /*!<    */
     SYS_STATEMACH_INITIALIZE_BMS                            = 7,    /*!<    */
     SYS_STATEMACH_RUNNING                                   = 8,    /*!<    */
-    SYS_STATEMACH_FIRST_MEASUREMENT_CYCLE                    = 9,    /*!<    */
-    SYS_STATEMACH_INITIALIZE_MISC                           = 10,    /*!<    */
+    SYS_STATEMACH_FIRST_MEASUREMENT_CYCLE                    = 9,   /*!<    */
+    SYS_STATEMACH_INITIALIZE_MISC                           = 10,   /*!<    */
     SYS_STATEMACH_CHECK_CURRENT_SENSOR_PRESENCE             = 11,   /*!<    */
-    SYS_STATEMACH_UNDEFINED                                 = 20,   /*!< undefined state                                */
-    SYS_STATEMACH_RESERVED1                                 = 0x80, /*!< reserved state                                 */
-    SYS_STATEMACH_ERROR                                     = 0xF0, /*!< Error-State:  */
+    SYS_STATEMACH_UNDEFINED                                 = 20,   /*!< undefined state    */
+    SYS_STATEMACH_RESERVED1                                 = 0x80, /*!< reserved state     */
+    SYS_STATEMACH_ERROR                                     = 0xF0, /*!< Error-State:       */
 } SYS_STATEMACH_e;
 
 
@@ -122,9 +122,9 @@ typedef enum {
     SYS_WAIT_FIRST_MEASUREMENT_CYCLE    = 7,    /*!< Substate to wait for first measurement cycle to complete   */
     SYS_WAIT_CURRENT_SENSOR_PRESENCE    = 8,    /*!< Substate to wait for first measurement cycle to complete   */
     SYS_CONT_INIT_ERROR                 = 9,    /*!< Substate error of contactor state machine initialization   */
-    SYS_ILCK_INIT_ERROR                 = 10,    /*!< Substate error of contactor state machine initialization   */
-    SYS_BMS_INIT_ERROR                  = 11,    /*!< Substate error of bms state machine initialization   */
-    SYS_MEAS_INIT_ERROR                 = 12,    /*!< Substate error if first measurement cycle does not complete   */
+    SYS_ILCK_INIT_ERROR                 = 10,   /*!< Substate error of contactor state machine initialization   */
+    SYS_BMS_INIT_ERROR                  = 11,   /*!< Substate error of bms state machine initialization   */
+    SYS_MEAS_INIT_ERROR                 = 12,   /*!< Substate error if first measurement cycle does not complete   */
     SYS_CURRENT_SENSOR_PRESENCE_ERROR   = 13,   /*!< Substate error if first measurement cycle does not complete   */
 } SYS_STATEMACH_SUB_e;
 
@@ -134,7 +134,7 @@ typedef enum {
  */
 typedef enum {
     SYS_STATE_INIT_REQUEST                = SYS_STATEMACH_INITIALIZATION,           /*!<    */
-    SYS_STATE_ERROR_REQUEST               = SYS_STATEMACH_ERROR,   /*!<    */
+    SYS_STATE_ERROR_REQUEST               = SYS_STATEMACH_ERROR,                    /*!<    */
     SYS_STATE_NO_REQUEST                  = SYS_STATEMACH_RESERVED1,                /*!<    */
 } SYS_STATE_REQUEST_e;
 
@@ -165,14 +165,43 @@ typedef struct {
     SYS_STATEMACH_e laststate;              /*!< previous state of the state machine                                                    */
     uint8_t lastsubstate;                   /*!< previous substate of the state machine                                                 */
     uint32_t ErrRequestCounter;             /*!< counts the number of illegal requests to the SYS state machine */
-    uint16_t InitCounter;                   /*!< Timeout to wait for initializaiton of state machine state machine */
+    uint16_t InitCounter;                   /*!< Timeout to wait for initialization of state machine state machine */
     uint8_t triggerentry;                   /*!< counter for re-entrance protection (function running flag) */
 } SYS_STATE_s;
 
 
 /*================== Function Prototypes ==================================*/
+/**
+ * @brief   sets the current state request of the state variable sys_state.
+ *
+ * @details This function is used to make a state request to the state machine, e.g., start
+ *          voltage measurement, read result of voltage measurement, re-initialization.
+ *          It calls SYS_CheckStateRequest() to check if the request is valid. The state request
+ *          is rejected if is not valid. The result of the check is returned immediately, so that
+ *          the requester can act in case it made a non-valid state request.
+ *
+ * @param   statereq state requested to set
+ *
+ * @return  If the request was successfully set, it returns the SYS_OK, else the current state of
+ *          requests ( type SYS_STATE_REQUEST_e)
+ */
 extern SYS_RETURN_TYPE_e SYS_SetStateRequest(SYS_STATE_REQUEST_e statereq);
-extern  SYS_STATEMACH_e SYS_GetState(void);
+
+/**
+ * @brief   gets the current state.
+ *
+ * @details This function is used in the functioning of the SYS state machine.
+ *
+ * @return  current state, taken from SYS_STATEMACH_e
+ */
+extern SYS_STATEMACH_e SYS_GetState(void);
+
+/**
+ * @brief   trigger function for the SYS driver state machine.
+ *
+ * @details This function contains the sequence of events in the SYS state machine. It must be
+ *          called time-triggered, every 1ms.
+ */
 extern void SYS_Trigger(void);
 
 

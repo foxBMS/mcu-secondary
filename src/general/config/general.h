@@ -41,8 +41,6 @@
 #include <std_types.h>
 
 /*================== Macros and Definitions ===============================*/
-#define FOXBMS_BOARD                      1
-
 
 /**
  * @ingroup CONFIG_GENERAL

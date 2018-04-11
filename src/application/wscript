@@ -38,9 +38,9 @@ def build(bld):
     includes += ' '.join([
             '.',
             
+            os.path.join('bms'),
             os.path.join('config'),
             os.path.join('sox'),
-            os.path.join('bms'),
             os.path.join('task'),
 
             os.path.join('..', 'engine', 'config'),

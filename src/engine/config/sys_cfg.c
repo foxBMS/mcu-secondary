@@ -21,13 +21,13 @@
  */
 
 /**
- * @file    syscontrol_cfg.c
+ * @file    sys_cfg.c
  * @author  foxBMS Team
  * @date    21.09.2015 (date of creation)
  * @ingroup ENGINE_CONF
  * @prefix  SYS
  *
- * @brief   Syscontrol driver configuration
+ * @brief   Sys driver configuration
  */
 
 /*================== Includes =============================================*/

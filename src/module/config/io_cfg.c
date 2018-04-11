@@ -65,7 +65,6 @@
 
 /*================== Constant and Variable Definitions ====================*/
 
-#if FOXBMS_BOARD == 1
 const IO_PIN_CFG_s io_cfg[] = {
     /*
      * Trace
@@ -124,7 +123,6 @@ const IO_PIN_CFG_s io_cfg[] = {
     };
 
 const uint8_t io_cfg_length = sizeof(io_cfg)/sizeof(io_cfg[0]);
-#endif // FOXBMS_BOARD
 
 /*================== Function Prototypes ==================================*/
 

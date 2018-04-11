@@ -61,7 +61,6 @@ def build(bld):
             os.path.join('..', 'engine', 'config'),
             os.path.join(bld.top_dir, bld.env.__sw_dir, bld.env.__bld_common, 'src', 'engine', 'database'),
             os.path.join('..', 'engine', 'diag'),
-            os.path.join('..', 'engine', 'sysctrl'),
             os.path.join('..', 'engine', 'task'),
 
             os.path.join('..', 'general'),
@@ -94,9 +93,9 @@ def build(bld):
     use = [
         'foxbms-os',
         'foxbms-CMSIS',
+        'foxbms-application',
         'foxbms-common-engine',
         'foxbms-engine',
-        'foxbms-application',
         'foxbms-module',
         'foxbms-common-module',
         'foxbms-stmhal',
