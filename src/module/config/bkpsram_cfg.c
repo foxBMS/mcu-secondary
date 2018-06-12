@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -48,18 +48,10 @@
 
 
 /*================== Constant and Variable Definitions ====================*/
-BKPSRAM_CH_NVSOC_s MEM_BKP_SRAM bkpsram_nvsoc;
 BKPSRAM_CH_CONT_COUNT_s MEM_BKP_SRAM bkpsram_contactors_count;
 BKPSRAM_CH_OP_HOURS_s MEM_BKP_SRAM bkpsram_operating_hours;
 MAIN_STATUS_s MEM_BKP_SRAM main_state;
 BKPSRAM_OPERATING_HOURS_s MEM_BKP_SRAM bkpsram_op_hours;
-
-
-const BKPSRAM_CH_NVSOC_s default_nvsoc = {
-    .data.max            = 50.0,
-    .data.min            = 50.0,
-    .data.mean           = 50.0
-};
 
 const BKPSRAM_CH_CONT_COUNT_s default_contactors_count = {
     .data.cont_switch_closed = {0,0,0},

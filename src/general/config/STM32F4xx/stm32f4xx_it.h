@@ -69,14 +69,6 @@ void SVC_Handler(void);
 void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
-void CAN1_TX_IRQHandler(void);                /* CAN1 TX    */
-void CAN1_RX0_IRQHandler(void);               /* CAN1 RX0   */
-void CAN1_RX1_IRQHandler(void);               /* CAN1 RX1   */
-void CAN1_SCE_IRQHandler(void);               /* CAN1 SCE   */
-void CAN0_TX_IRQHandler(void);                /* CAN0 TX    */
-void CAN0_RX0_IRQHandler(void);               /* CAN0 RX0   */
-void CAN0_RX1_IRQHandler(void);               /* CAN0 RX1   */
-void CAN0_SCE_IRQHandler(void);               /* CAN0 SCE   */
 
 #ifdef __cplusplus
 }

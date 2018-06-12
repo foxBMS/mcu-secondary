@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -46,16 +46,7 @@
 
 /*================== Constant and Variable Definitions ====================*/
 UART_HandleTypeDef uart_cfg[UART_NUMBER_OF_USED_UART_CHANNELS] = {
-        {
-                .Instance = USART3,
-                .Init.BaudRate = 115200,
-                .Init.WordLength = UART_WORDLENGTH_8B,
-                .Init.StopBits = UART_STOPBITS_1,
-                .Init.Parity = UART_PARITY_NONE,
-                .Init.Mode = UART_MODE_TX_RX,
-                .Init.HwFlowCtl = UART_HWCONTROL_NONE,
-                .Init.OverSampling = UART_OVERSAMPLING_16,
-        }
+
 };
 
 uint8_t uart_cfg_length = sizeof(uart_cfg)/sizeof(uart_cfg[0]);

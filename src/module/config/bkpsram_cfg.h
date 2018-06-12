@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -36,7 +36,6 @@
 
 /*================== Includes =============================================*/
 
-#include "sox.h"
 #include "diag.h"
 #include "main.h"
 
@@ -72,17 +71,6 @@ typedef struct {
     uint16_t reserved[2]; /*!< reserved for future use */
 } BKPSRAM_OPERATING_HOURS_s;
 
-
-/**
- * state of charge voltages, since soc is voltage dependent, three different values are calculated, min, max and mean,
- * number of opening/closing events of the contactors,
- * checksum over soc data and switching events
- */
-typedef struct {
-    SOX_SOC_s data;
-    uint32_t checksum;
-} BKPSRAM_CH_NVSOC_s;
-
 typedef struct {
     DIAG_CONTACTOR_s data;
     uint32_t checksum;
@@ -94,10 +82,8 @@ typedef struct {
 } BKPSRAM_CH_OP_HOURS_s;
 
 /*================== Constant and Variable Definitions ====================*/
-extern BKPSRAM_CH_NVSOC_s MEM_BKP_SRAM bkpsram_nvsoc;
 extern BKPSRAM_CH_CONT_COUNT_s MEM_BKP_SRAM bkpsram_contactors_count;
 extern BKPSRAM_CH_OP_HOURS_s MEM_BKP_SRAM bkpsram_operating_hours;
-extern const BKPSRAM_CH_NVSOC_s default_nvsoc;
 extern const BKPSRAM_CH_CONT_COUNT_s default_contactors_count;
 extern const BKPSRAM_CH_OP_HOURS_s default_operating_hours;
 

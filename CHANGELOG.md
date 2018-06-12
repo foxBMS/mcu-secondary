@@ -1,5 +1,15 @@
 # foxBMS Change Log
 
+## Relase 1.1.0
+
+- uses now wafs feature of variant builds
+- the setup of the tasks in engine and application layer is now consistent
+- updated license header
+- seperated database entries to prevent concurrent read/write requests to the database
+- renamed database functions to `DB_WriteBlock()` and `DB_ReadBlock()`
+- deleted unused code
+- updated README.md
+
 ## Release 1.0.0
 
 - renamed repository from ``foxBMS-secondary`` to ``mcu-secondary``.

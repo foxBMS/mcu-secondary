@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -203,24 +203,6 @@ extern void DIAG_configASSERT(void);
  * @return  void
  */
 extern void DIAG_SysMon(void);
-
-/**
- * @brief   DIAG_PrintErrors prints contents of the error buffer on user request.
- *
- * This function prints out complete error buffer using the UART interface.
- *
- * @return  void
- */
-extern void DIAG_PrintErrors(void);
-
-/**
- * @brief   DIAG_PrintContactorInfo prints contents of the contactor switching buffer on user request.
- *
- * This function prints out complete contactor information using the UART interface.
- *
- * @return  void
- */
-extern void DIAG_PrintContactorInfo(void);
 
 /**
  * @brief   DIAG_SysMonNotify has to be called in every function using the system monitoring.
