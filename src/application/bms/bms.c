@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -68,10 +68,8 @@ static BMS_STATE_s bms_state = {
 /*================== Function Prototypes ==================================*/
 
 static BMS_RETURN_TYPE_e BMS_CheckStateRequest(BMS_STATE_REQUEST_e statereq);
-static BMS_STATE_REQUEST_e BMS_GetStateRequest(void);
 static BMS_STATE_REQUEST_e BMS_TransferStateRequest(void);
 static uint8_t BMS_CheckReEntrance(void);
-static uint8_t BMS_CheckCANRequests(void);
 static STD_RETURN_TYPE_e BMS_CheckAnyErrorFlagSet(void);
 static void BMS_CheckVoltages(void);
 static void BMS_CheckTemperatures(void);
@@ -98,23 +96,6 @@ static uint8_t BMS_CheckReEntrance(void) {
         retval = 0xFF;  // multiple calls of function
     }
     OS_TaskExit_Critical();
-    return (retval);
-}
-
-/**
- * @brief   gets the current state request.
- *
- * @details This function is used in the functioning of the SYS state machine.
- *
- * @return  current state request, taken from BMS_STATE_REQUEST_e
- */
-static BMS_STATE_REQUEST_e BMS_GetStateRequest(void) {
-    BMS_STATE_REQUEST_e retval = BMS_STATE_NO_REQUEST;
-
-    OS_TaskEnter_Critical();
-    retval    = bms_state.statereq;
-    OS_TaskExit_Critical();
-
     return (retval);
 }
 
@@ -325,26 +306,6 @@ void BMS_Trigger(void) {
 /*================== Static functions =====================================*/
 
 
-static uint8_t BMS_CheckCANRequests(void){
-
-    uint8_t retVal = BMS_REQ_ID_NOREQ;
-    DATA_BLOCK_STATEREQUEST_s request;
-
-    DATA_GetTable(&request, DATA_BLOCK_ID_STATEREQUEST);
-
-    if (request.state_request == BMS_REQ_ID_STANDBY){
-        retVal = BMS_REQ_ID_STANDBY;
-    }
-    else if (request.state_request == BMS_REQ_ID_NORMAL){
-        retVal = BMS_REQ_ID_NORMAL;
-    }
-
-    return retVal;
-}
-
-
-
-
 /**
  * @brief   checks the abidance by the safe operating area
  *
@@ -353,7 +314,7 @@ static uint8_t BMS_CheckCANRequests(void){
 static void BMS_CheckVoltages(void) {
     DATA_BLOCK_MINMAX_s minmax;
 
-    DATA_GetTable(&minmax, DATA_BLOCK_ID_MINMAX);
+    DB_ReadBlock(&minmax, DATA_BLOCK_ID_MINMAX);
 
     if (minmax.voltage_max > BC_VOLTMAX) {
         DIAG_Handler(DIAG_CH_CELLVOLTAGE_OVERVOLTAGE, DIAG_EVENT_NOK, 0, NULL_PTR);
@@ -378,8 +339,8 @@ static void BMS_CheckTemperatures(void) {
     DATA_BLOCK_MINMAX_s minmax;
     DATA_BLOCK_CURRENT_s curr_tab;
 
-    DATA_GetTable(&curr_tab, DATA_BLOCK_ID_CURRENT);
-    DATA_GetTable(&minmax, DATA_BLOCK_ID_MINMAX);
+    DB_ReadBlock(&curr_tab, DATA_BLOCK_ID_CURRENT);
+    DB_ReadBlock(&minmax, DATA_BLOCK_ID_MINMAX);
 
     if(curr_tab.current>=0.0){
         if (minmax.temperature_max > BC_TEMPMAX_DISCHARGE) {
@@ -423,8 +384,8 @@ static void BMS_CheckCurrent(void) {
     DATA_BLOCK_SOX_s sof_tab;
     DATA_BLOCK_CURRENT_s curr_tab;
 
-    DATA_GetTable(&sof_tab, DATA_BLOCK_ID_SOX);
-    DATA_GetTable(&curr_tab, DATA_BLOCK_ID_CURRENT);
+    DB_ReadBlock(&sof_tab, DATA_BLOCK_ID_SOX);
+    DB_ReadBlock(&curr_tab, DATA_BLOCK_ID_CURRENT);
 
 #if MEAS_TEST_CELL_SOF_LIMITS == TRUE
     if (((curr_tab.current < (-1000*(sof_tab.sof_continuous_charge))) ||
@@ -459,9 +420,9 @@ static void BMS_CheckCurrent(void) {
  */
 static STD_RETURN_TYPE_e BMS_CheckAnyErrorFlagSet(void) {
     STD_RETURN_TYPE_e retVal = E_NOT_OK;
-    DATA_BLOCK_SYSTEMSTATE_s error_flags;
+    DATA_BLOCK_ERRORSTATE_s error_flags;
 
-    DATA_GetTable(&error_flags, DATA_BLOCK_ID_SYSTEMSTATE);
+    DB_ReadBlock(&error_flags, DATA_BLOCK_ID_ERRORSTATE);
 
     if( error_flags.main_plus                   == 1 ||
         error_flags.main_minus                  == 1 ||

@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -33,7 +33,7 @@
 
 /*================== Includes =============================================*/
 /* recommended include order of header files:
- * 
+ *
  * 1.    include general.h
  * 2.    include module's own header
  * 3...  other headers
@@ -49,10 +49,9 @@
 #include "os.h"
 
 #include "nvic.h"
-#include "cansignal.h"
-#include "can.h"
 #include "diag.h"
-#include "sdram.h"
+
+
 /*================== Macros and Definitions ===============================*/
 
 
@@ -60,7 +59,7 @@
 volatile OS_BOOT_STATE_e os_boot;
 volatile OS_BOOT_STATE_e os_safety_state;
 volatile OS_TIMER_s os_timer;
-static uint8_t eng_init = FALSE;
+uint8_t eng_init = FALSE;
 
 /**
  * Scheduler "zero" time for task phase control
@@ -68,7 +67,6 @@ static uint8_t eng_init = FALSE;
 uint32_t os_schedulerstarttime;
 
 /*================== Function Prototypes ==================================*/
-static void OS_TimerTrigger(void);
 
 /*================== Function Implementations =============================*/
 
@@ -109,120 +107,6 @@ void vApplicationIdleHook(void) {
 }
 
 
-void OS_TSK_Engine(void) {
-
-    OS_PostOSInit();
-
-    os_boot = OS_SYSTEM_RUNNING;
-
-    for(;;) {
-
-        DATA_Task();    /* Call database manager */
-        DIAG_SysMon();  /* Call Overall System Monitoring */
-    }
-}
-
-
-void OS_TSK_Cyclic_1ms(void) {
-
-    while (os_boot != OS_SYSTEM_RUNNING) {
-        ;
-    }
-
-    if(eng_init==FALSE){
-        ENG_Init();
-        eng_init=TRUE;
-    }
-
-    osDelayUntil(&os_schedulerstarttime, eng_tskdef_cyclic_1ms.Phase);
-
-    while(1) {
-
-        uint32_t currentTime = osKernelSysTick();
-
-        OS_TimerTrigger();        // Increment system timer os_timer
-        ENG_TSK_Cyclic_1ms();
-
-        osDelayUntil(&currentTime, eng_tskdef_cyclic_1ms.CycleTime);
-    }
-
-}
-
-
-void OS_TSK_Cyclic_10ms(void) {
-
-    while (os_boot != OS_SYSTEM_RUNNING) {
-        ;
-    }
-
-    osDelayUntil(&os_schedulerstarttime, eng_tskdef_cyclic_10ms.Phase);
-
-    while(1) {
-
-        uint32_t currentTime = osKernelSysTick();
-
-        ENG_TSK_Cyclic_10ms();
-
-        osDelayUntil(&currentTime, eng_tskdef_cyclic_10ms.CycleTime);
-    }
-
-}
-
-void OS_TSK_Cyclic_100ms(void) {
-
-    while (os_boot != OS_SYSTEM_RUNNING) {
-        ;
-    }
-    osDelayUntil(&os_schedulerstarttime, eng_tskdef_cyclic_100ms.Phase);
-
-    while(1) {
-
-        uint32_t currentTime = osKernelSysTick();
-
-        ENG_TSK_Cyclic_100ms();
-
-        osDelayUntil(&currentTime, eng_tskdef_cyclic_100ms.CycleTime);
-    }
-
-}
-
-
-void OS_TSK_EventHandler(void) {
-
-    while (os_boot != OS_SYSTEM_RUNNING) {
-        ;
-    }
-    osDelayUntil(&os_schedulerstarttime, eng_tskdef_eventhandler.Phase);
-
-    while(1) {
-
-        uint32_t currentTime = osKernelSysTick();
-
-        ENG_TSK_EventHandler();
-
-        osDelayUntil(&currentTime, eng_tskdef_eventhandler.CycleTime);
-    }
-}
-
-void OS_TSK_Diagnosis(void) {
-
-    while (os_boot != OS_SYSTEM_RUNNING) {
-        ;
-    }
-    osDelayUntil(&os_schedulerstarttime, eng_tskdef_diagnosis.Phase);
-
-    while(1) {
-
-        uint32_t currentTime = osKernelSysTick();
-
-        ENG_TSK_Diagnosis();
-
-        osDelayUntil(&currentTime, eng_tskdef_diagnosis.CycleTime);
-    }
-
-}
-
-
 
 void OS_PostOSInit(void) {
 
@@ -232,12 +116,6 @@ void OS_PostOSInit(void) {
     os_boot = OS_RUNNING;
 
     NVIC_PostOsInit();
-#ifdef HAL_SDRAM_MODULE_ENABLED
-    SDRAM_Init();
-#endif
-    CAN_Init();
-
-
 
     os_boot = OS_BMS_INIT;
     
@@ -253,15 +131,7 @@ void OS_IdleTask(void) {
 }
 
 
-
-/**
- * @brief   increments the system timer os_timer
- *
- * The os_timer is a runtime-counter, counting the time since the last reset.
- *
- * @return  void
- */
-static void OS_TimerTrigger(void) {
+void OS_TimerTrigger(void) {
 
     if(++os_timer.Timer_1ms > 9 ) {
         // 10ms

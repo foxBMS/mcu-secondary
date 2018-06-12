@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -39,6 +39,7 @@
 /*================== Includes =============================================*/
 #include <stdint.h>
 #include <std_types.h>
+#include "foxbmsconfig.h"
 
 /*================== Macros and Definitions ===============================*/
 
@@ -158,36 +159,6 @@
 
 //#define BUILD_MODULE_IMPORT_CELL_DATASHEET  1
 #define BUILD_MODULE_IMPORT_CELL_DATASHEET  0
-
-#define STR(TESTMACRO) #TESTMACRO
-#define XSTR(TESTMACRO) STR(TESTMACRO)
-
-#ifndef BUILD_VERSION
-#define BUILD_VERSION        "    0.5"                /*strlen: 16 (15 + '/0') */
-#endif
-
-#ifndef BUILD_APPNAME
-#define BUILD_APPNAME        "foxbms "                /*strlen: 16 (15 + '/0') */
-#endif
-
-#ifndef BUILD_VENDOR
-#define BUILD_VENDOR         "Fraunhofer IISB"        /*strlen: 16 (15 + '/0') */
-#endif
-
-#ifndef BUILD_BL_MAJOR
-#define BUILD_BL_MAJOR          0
-#endif
-
-#ifndef BUILD_BL_MINOR
-#define BUILD_BL_MINOR          2
-#endif
-
-#ifndef BUILD_BL_BUGFIX
-#define BUILD_BL_BUGFIX         0
-#endif
-//  #pragma message XSTR(BUILD_VERSION)
-//  #pragma message XSTR(BUILD_APPNAME)
-//  #pragma message XSTR(BUILD_VENDOR)
 
 /**
  * A variable defined as ``(type) MEM_BKP_SRAM (name)`` will be stored in the

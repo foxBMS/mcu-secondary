@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -123,6 +123,22 @@ DATA_BLOCK_LTC_DEVICE_PARAMETER_s data_block_ltc_diagnosis[SINGLE_BUFFERING];
 DATA_BLOCK_LTC_ADC_ACCURACY_s data_block_ltc_adc_accuracy[SINGLE_BUFFERING];
 
 /**
+ * data block: contactor feedback
+ */
+DATA_BLOCK_CONTFEEDBACK_s data_block_contfeedback[SINGLE_BUFFERING];
+
+/**
+ * data block: interlock feedback
+ */
+DATA_BLOCK_ILCKFEEDBACK_s data_block_ilckfeedback[SINGLE_BUFFERING];
+
+/**
+ * data block: system state
+ */
+DATA_BLOCK_SYSTEMSTATE_s data_block_systemstate[SINGLE_BUFFERING];
+
+
+/**
  * @brief channel configuration of database (data blocks)
  *
  * all data block managed by database are listed here (address,size,consistency type)
@@ -201,13 +217,28 @@ DATA_BASE_HEADER_s  data_base_header[] = {
     },
     {
             (void*)(&data_block_errors[0]),
-            sizeof(DATA_BLOCK_SYSTEMSTATE_s),
+            sizeof(DATA_BLOCK_ERRORSTATE_s),
             DOUBLE_BUFFERING,
     },
     {
             (void*)(&data_block_mov_mean[0]),
             sizeof(DATA_BLOCK_MOVING_MEAN_s),
             DOUBLE_BUFFERING,
+    },
+    {
+            (void*)(&data_block_contfeedback[0]),
+            sizeof(DATA_BLOCK_CONTFEEDBACK_s),
+            SINGLE_BUFFERING,
+    },
+    {
+            (void*)(&data_block_ilckfeedback[0]),
+            sizeof(DATA_BLOCK_ILCKFEEDBACK_s),
+            SINGLE_BUFFERING,
+    },
+    {
+            (void*)(&data_block_systemstate[0]),
+            sizeof(DATA_BLOCK_SYSTEMSTATE_s),
+            SINGLE_BUFFERING,
     }
 };
 

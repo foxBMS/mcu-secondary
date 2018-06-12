@@ -61,7 +61,6 @@
 #include "cmsis_os.h"
 #include "dma.h"
 #include "spi.h"
-#include "can.h"
 
 #include "diag.h"
 #include "timer.h"
@@ -286,47 +285,6 @@ void SysTick_Handler(void)
 /*void PPP_IRQHandler(void)
 {
 }*/
-
-
-void CAN1_TX_IRQHandler(void)
-{
-    CAN_TX_IRQHandler(&hcan1);
-}
-
-void CAN1_RX0_IRQHandler(void)
-{
-    CAN_RX_IRQHandler(CAN_NODE1, &hcan1);
-}
-
-void CAN1_RX1_IRQHandler(void)
-{
-    CAN_RX_IRQHandler(CAN_NODE1, &hcan1);
-}
-
-void CAN1_SCE_IRQHandler(void)
-{
-    CAN_Error_IRQHandler(CAN_NODE1, &hcan1);
-}
-
-void CAN0_TX_IRQHandler(void)
-{
-    CAN_TX_IRQHandler(&hcan0);
-}
-
-void CAN0_RX0_IRQHandler(void)
-{
-    CAN_RX_IRQHandler(CAN_NODE0, &hcan0);
-}
-
-void CAN0_RX1_IRQHandler(void)
-{
-    CAN_RX_IRQHandler(CAN_NODE0, &hcan0);
-}
-
-void CAN0_SCE_IRQHandler(void)
-{
-    CAN_Error_IRQHandler(CAN_NODE0, &hcan0);
-}
 
 #if 1   // FIXME nötig?
 /**

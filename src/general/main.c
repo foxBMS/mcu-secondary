@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -46,7 +46,6 @@
 #include "mcu_cfg.h"
 #include "os.h"
 #include "version.h"
-#include "can.h"
 #include "nvic.h"
 #include "io.h"
 #include "rcc.h"

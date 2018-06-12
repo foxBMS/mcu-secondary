@@ -1,6 +1,6 @@
 /**
  *
- * @copyright &copy; 2010 - 2017, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
+ * @copyright &copy; 2010 - 2018, Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. All rights reserved.
  *
  * BSD 3-Clause License
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -64,12 +64,6 @@
  */
 NVIC_InitStruct_s nvic_interrupts[] = { 
 
-        /* CAN1 Interrupts */
-        { CAN1_TX_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
-        { CAN1_RX0_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
-        { CAN1_RX1_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
-        { CAN1_SCE_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
-
         { USART2_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
         { USART3_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
 
@@ -80,11 +74,6 @@ NVIC_InitStruct_s nvic_interrupts[] = {
 
         { SPI6_IRQn, 3, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
 
-        /* CAN0 Interrupts */
-        { CAN2_TX_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
-        { CAN2_RX0_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
-        { CAN2_RX1_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
-        { CAN2_SCE_IRQn, 7, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
 #if BUILD_MODULE_ENABLE_SAFETY_FEATURES
         { TIM3_IRQn, 4, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
         { SPI2_IRQn, 3, NVIC_IRQ_LOCK_ENABLE, NVIC_IRQ_ENABLE },
